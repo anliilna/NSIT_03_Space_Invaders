@@ -7,14 +7,18 @@ import sys
 pygame.init()
 
 # musique de fond
-pygame.mixer.music.load("Metal_Crusher.mp3")
+musique = "Metal_Crusher.mp3"
+game_over = "Game_Over.mp3"
+pygame.mixer.music.load(musique)
 # jouer la musique en boucle
 pygame.mixer.music.play(-1)
 # création d'une fenêtre de 1024 par 723
 screen = pygame.display.set_mode((1024, 723))
 pygame.display.set_caption("Mettaton fight")
 # chargement de l'image de fond
-fond = pygame.image.load('undertale_bg.jpg')
+fond = pygame.image.load('undertale_bg.png')
+
+
 # creation du joueur
 player = space.Joueur()
 # creation de la balle
@@ -23,7 +27,8 @@ tir.etat = "chargee"
 # creation des ennemis
 listeEnnemis = []
 pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-
+# création du texte 'pv'
+font = pygame.font.Font('undertale_font.ttf', 32)
 # création d'une liste pour l'animation
 frames = [pygame.image.load("Mettaton00.png"),
           pygame.image.load("Mettaton00.png"),
@@ -77,6 +82,7 @@ while running:  # boucle infinie pour laisser la fenêtre ouverte
     # augmentation de value après chaque changement d'image
     value += 1
 
+
     # Gestion des événements
     # v parcours de tous les event pygame dans cette fenêtre
     for event in pygame.event.get():
@@ -107,25 +113,37 @@ while running:  # boucle infinie pour laisser la fenêtre ouverte
     # Actualisation de la scene
     # Gestions des collisions
     for ennemi in listeEnnemis:
-        if tir.toucher(ennemi):
-                ennemi.disparaitre()
-                player.marquer()
+        if tir.toucher(ennemi, player):
+            ennemi.disparaitre()
+            player.marquer()
+        if ennemi.hauteur == player.position:
+            ennemi.disparaitre
+
+    if player.pv == 0:
+        fond = pygame.image.load("Game_Over.png")
+        # pygame.mixer.music.load(game_over)
 
     print(f"Score = {player.score} points")
     print(f"pv = {player.pv} pv")
     # placement des objets
     # le joueur
     player.deplacer()
-    # v appel de la fonction qui dessine le vaisseau du joueur
+    # appel de la fonction qui dessine le vaisseau du joueur
     screen.blit(tir.image, [tir.depart, tir.hauteur])
     # la balle
     tir.bouger()
-    # v appel de la fonction qui dessine le vaisseau du joueur
+    # appel de la fonction qui dessine le vaisseau du joueur
     screen.blit(player.image, [player.position, 440])
+    text = font.render(f"{player.pv}/20", True, (255, 255, 255))
+    screen.blit(text, [554, 590])
+    # création de la barre de pv
+    pygame.draw.rect(screen,(255,0,0),(449,588,95,36))
+    pygame.draw.rect(screen,(255,255,0),(449,588,tir.longueur,36))
+
     # les ennemis
     for ennemi in listeEnnemis:
         ennemi.avancer()
-        # v appel de la fonction qui dessine le vaisseau du joueur
+        # appel de la fonction qui dessine le vaisseau du joueur
         screen.blit(ennemi.image, [ennemi.depart, ennemi.hauteur])
 
     pygame.display.update()  # pour ajouter tout changement à l'écran

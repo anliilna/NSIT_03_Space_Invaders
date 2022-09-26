@@ -1,8 +1,10 @@
-import pygame  # necessaire pour charger les images et les sons
+# necessaire pour charger les images et les sons
+import pygame
 import random
 import math
 
-class Joueur():  # classe pour créer le vaisseau du joueur
+# classe pour créer le vaisseau du joueur
+class Joueur():
     def __init__(self):
         self.position = 500 - 32
         self.image = pygame.image.load("yellow_heart.png")
@@ -11,19 +13,31 @@ class Joueur():  # classe pour créer le vaisseau du joueur
         self.score = 0
         self.pv = 20
 
-    def deplacer(self):  # fait bouger le vaisseau de joueur
+    # fait bouger le vaisseau de joueur
+    def deplacer(self):
         if (self.sens == "droite") and (self.position < 870):
             self.position = self.position + self.vitesse
         elif (self.sens == "gauche") and (self.position > 95):
             self.position = self.position - self.vitesse
 
-    def tirer(self):  # envoie une munition
+    # envoie une munition
+    def tirer(self):
         self.sens = "O"
 
-    def marquer(self):  # augmente le score
+    # augmente le score
+    def marquer(self):
         self.score = self.score + 1
 
-class Balle():  # classe pour créer les munitions
+class PV():
+    def __init_(self, player):
+        self.pv = player.pv
+        self.font = pygame.font.Font('undertale_font.ttf', 32)
+
+    def damage(self, player):
+        font.render({player.pv}, '/20', True, (255, 0, 255))
+
+# classe pour créer les munitions
+class Balle():
     def __init__(self, tireur):
         self.tireur = tireur
         self.depart = tireur.position
@@ -31,25 +45,39 @@ class Balle():  # classe pour créer les munitions
         self.image = pygame.image.load("balle.png")
         self.etat = "chargee"
         self.vitesse = 8
+        self.longueur = 95
 
-    def bouger(self):  # dirige la balle vers les ennemis
+    # dirige la balle vers le haut de la fenêtre
+    def bouger(self):
         if self.etat == "chargee":
             self.depart = self.tireur.position
             self.hauteur = 437
         elif self.etat == "tiree":
             self.hauteur = self.hauteur - self.vitesse
-
         if self.hauteur < 0:
             self.etat = "chargee"
 
-    # v recharge une balle quand la précedente touche un ennemi
-    def toucher(self, vaisseau):
+    # recharge une balle quand la précedente disparaît
+    def toucher(self, vaisseau, player):
         if (math.fabs(self.hauteur - vaisseau.hauteur) < 40):
             if(math.fabs(self.depart - vaisseau.depart) < 40):
-                self.etat = "chargee"
-                return True
+                if self.etat == "chargee":
+                    damage = pygame.mixer.Sound("damage.wav")
+                    damage.play()
+                    player.pv -= 1
+                    self.longueur -= self.longueur/20
+                    if player.pv <=0:
+                        player.pv = 0
+                    return True
 
-class Ennemi():  # classe pour créer les ennemis
+                else:
+                    self.etat = "chargee"
+                    shot = pygame.mixer.Sound("shot.wav")
+                    shot.play()
+                    return True
+
+# classe pour créer les ennemis
+class Ennemi():
     NbEnnemis = 6
 
     def __init__(self):
@@ -59,10 +87,11 @@ class Ennemi():  # classe pour créer les ennemis
         self.vitesse = 5
         self.image = pygame.image.load('invader2.png')
 
-    def avancer(self):  # fait avancer un ennemi vers le bas de l'écran
+    # fait avancer un ennemi vers le bas de l'écran
+    def avancer(self):
         self.hauteur = self.hauteur + self.vitesse
 
-    # v fait disparaitre un ennemi quand il est touché par une munition
+    # fait disparaitre un ennemi quand il est touché par une munition
     def disparaitre(self):
         self.depart = random.randint(90, 800)
         self.hauteur = 10
