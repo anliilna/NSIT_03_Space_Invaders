@@ -10,7 +10,6 @@ class Joueur():
         self.image = pygame.image.load("yellow_heart.png")
         self.sens = "O"
         self.vitesse = 10
-        self.score = 0
         self.pv = 20
 
     # fait bouger le vaisseau de joueur
@@ -24,18 +23,6 @@ class Joueur():
     def tirer(self):
         self.sens = "O"
 
-    # augmente le score
-    def marquer(self):
-        self.score = self.score + 1
-
-class PV():
-    def __init_(self, player):
-        self.pv = player.pv
-        self.font = pygame.font.Font('undertale_font.ttf', 32)
-
-    def damage(self, player):
-        font.render({player.pv}, '/20', True, (255, 0, 255))
-
 # classe pour créer les munitions
 class Balle():
     def __init__(self, tireur):
@@ -46,6 +33,7 @@ class Balle():
         self.etat = "chargee"
         self.vitesse = 8
         self.longueur = 95
+        self.score = 0
 
     # dirige la balle vers le haut de la fenêtre
     def bouger(self):
@@ -58,23 +46,27 @@ class Balle():
             self.etat = "chargee"
 
     # recharge une balle quand la précedente disparaît
-    def toucher(self, vaisseau, player):
-        if (math.fabs(self.hauteur - vaisseau.hauteur) < 40):
-            if(math.fabs(self.depart - vaisseau.depart) < 40):
-                if self.etat == "chargee":
-                    damage = pygame.mixer.Sound("damage.wav")
-                    damage.play()
-                    player.pv -= 1
-                    self.longueur -= self.longueur/20
-                    if player.pv <=0:
-                        player.pv = 0
-                    return True
+    def toucher(self, vaisseau, player, score):
+        if ((math.fabs(self.hauteur - vaisseau.hauteur) < 40)
+           and (math.fabs(self.depart - vaisseau.depart) < 40)):
+            # fait perdre un pv
+            if self.hauteur == 437:
+                degats = pygame.mixer.Sound("damage.wav")
+                degats.play()
+                player.pv -= 1
+                self.longueur -= self.longueur/20
+                if player.pv <= 0:
+                    player.pv = 0
+                return True
+            elif self.etat == "tiree":
+                shot = pygame.mixer.Sound("shot.wav")
+                shot.play()
+                self.score += 1
+                self.etat = "chargee"
+                return True
 
-                else:
-                    self.etat = "chargee"
-                    shot = pygame.mixer.Sound("shot.wav")
-                    shot.play()
-                    return True
+        if self.hauteur == 600:
+            disparaitre(self)
 
 # classe pour créer les ennemis
 class Ennemi():
@@ -91,7 +83,7 @@ class Ennemi():
     def avancer(self):
         self.hauteur = self.hauteur + self.vitesse
 
-    # fait disparaitre un ennemi quand il est touché par une munition
+    # fait apparaitre un ennemi quand un autre disparait
     def disparaitre(self):
         self.depart = random.randint(90, 800)
         self.hauteur = 10
